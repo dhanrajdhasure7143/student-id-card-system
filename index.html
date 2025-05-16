@@ -316,6 +316,11 @@
                 <button class="btn btn-primary" onclick="logout()">Logout</button>
             </div>
 
+            <button class="btn btn-info mb-3" onclick="showAnalyticsDashboard()" data-bs-toggle="modal"
+                data-bs-target="#analyticsModal">
+                View Analytics
+            </button>
+
             <div class="marquee-container mb-4">
                 <div class="marquee">
                     Note : Last Date for Registration is <b>20th May 2023</b> for <b>3rd Semester</b> Students and
@@ -410,6 +415,11 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">
                 <div id="idCardContent"></div>
+                <button class="btn btn-primary">
+                    <a id="verifyLink" class="text-white" href="" target="_blank">
+                        Share ID Card
+                    </a>
+                </button>
                 <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
                 <div class="text-center mt-3">
                     <button class="btn btn-primary" onclick="printIDCard()">Download ID Card</button>
@@ -431,6 +441,48 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="analyticsModal" tabindex="-1" aria-labelledby="analyticsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="analyticsModalLabel">Analytics Dashboard</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-4 mb-4 text-center">
+                        <div class="col-md-4">
+                            <div class="bg-light p-3 rounded shadow-sm">
+                                <h6>Total Students</h6>
+                                <h3 id="analytics-total">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-light p-3 rounded shadow-sm">
+                                <h6>With Profile Photo</h6>
+                                <h3 id="analytics-photo">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-light p-3 rounded shadow-sm">
+                                <h6>With Email</h6>
+                                <h3 id="analytics-email">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <canvas id="courseChart"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="semesterChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
 
@@ -457,6 +509,7 @@
         let allStudents = [];
         let currentEditPhotoId = null;
         let sortAscending = true;
+        let studentRegNo = null;
 
         function previewNewPhoto(event) {
             const file = event.target.files[0];
@@ -549,6 +602,9 @@
 
         function showID(student) {
             const container = document.getElementById('idCardContent');
+
+            studentRegNo = student.regNo;
+            document.getElementById('verifyLink').href = `verify.html?regNo=${studentRegNo}`;
             container.innerHTML = `
             <div class="sid-card-wrapper">
             <div class="sid-card">
@@ -908,10 +964,80 @@
             Developed In Basavakalyan
         </div>
     </footer> -->
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.getElementById('year').textContent = new Date().getFullYear();
+        // document.getElementById('year').textContent = new Date().getFullYear();
+
+        function showAnalyticsDashboard() {
+            const total = allStudents.length;
+            const withPhoto = allStudents.filter(s => s.photo && s.photo.startsWith('data:image')).length;
+            const withEmail = allStudents.filter(s => s.email && s.email.includes('@')).length;
+
+            document.getElementById('analytics-total').textContent = total;
+            document.getElementById('analytics-photo').textContent = withPhoto;
+            document.getElementById('analytics-email').textContent = withEmail;
+
+            const courseCount = {};
+            const semesterCount = {};
+
+            allStudents.forEach(s => {
+                const course = s.course || 'Unknown';
+                const semester = s.semester || 'Unknown';
+
+                courseCount[course] = (courseCount[course] || 0) + 1;
+                semesterCount[semester] = (semesterCount[semester] || 0) + 1;
+            });
+
+            if (window.courseChart && typeof window.courseChart.destroy === 'function') {
+                window.courseChart.destroy();
+            }
+            if (window.semesterChart && typeof window.semesterChart.destroy === 'function') {
+                window.semesterChart.destroy();
+            }
+
+
+            window.courseChart = new Chart(document.getElementById('courseChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(courseCount),
+                    datasets: [{
+                        label: 'Students per Course',
+                        data: Object.values(courseCount),
+                        backgroundColor: '#007bff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            window.semesterChart = new Chart(document.getElementById('semesterChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(semesterCount),
+                    datasets: [{
+                        label: 'Semester Distribution',
+                        data: Object.values(semesterCount),
+                        backgroundColor: [
+                            '#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8',
+                            '#6f42c1', '#fd7e14', '#20c997'
+                        ],
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 </body>
+
 </html>
