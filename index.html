@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ID Card Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f6ff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        h2,
+        h3 {
+            color: #0056b3;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.1);
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        table img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+        }
+
+        #idCardPreview {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 300px;
+            margin: auto;
+        }
+
+        #idCardPreview img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        #idCardPreview h5 {
+            color: #007bff;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .editing-cell {
+            outline: 2px dashed orange;
+            background-color: #fff7e1;
+        }
+
+        .edited-row td {
+            outline: 2px dashed orange;
+            background-color: #fff7e1;
+        }
+
+        .toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: #4caf50;
+            color: white;
+            text-align: left;
+            border-radius: 5px;
+            padding: 12px 16px;
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 9999;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            transform: translateY(20px);
+        }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        .toast.warning {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        header {
+            background-color: #1e88e5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .card {
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            max-width: 300px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .title {
+            color: grey;
+            font-size: 18px;
+        }
+
+        button {
+            border: none;
+            outline: 0;
+            display: inline-block;
+            padding: 8px;
+            color: white;
+            background-color: #000;
+            text-align: center;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            border-radius: 12px;
+        }
+
+        a {
+            text-decoration: none;
+            font-size: 22px;
+            color: black;
+        }
+
+        button:hover,
+        a:hover {
+            opacity: 0.7;
+        }
+
+        .sid-card-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .sid-card {
+            width: 100%;
+            max-width: 340px;
+            background: #ffffff;
+            border-left: 6px solid #0099cc;
+            border-radius: 16px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+        }
+
+        .sid-topbar {
+            background: #0099cc;
+            padding: 12px 16px;
+        }
+
+        .sid-college-name {
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .sid-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 20px auto 16px;
+            border: 3px solid #0099cc;
+        }
+
+        .sid-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sid-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+            padding: 0 16px;
+        }
+
+        .sid-student-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .sid-footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+            padding-bottom: 16px;
+        }
+
+        @media (max-width: 400px) {
+            .sid-card {
+                padding: 0;
+            }
+
+            .sid-info {
+                font-size: 14px;
+            }
+
+            .sid-college-name {
+                font-size: 15px;
+            }
+
+            .sid-student-name {
+                font-size: 17px;
+            }
+        }
+
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            /* background: #007bff; */
+            color: rgb(255, 95, 95);
+            padding: 10px 0;
+            font-weight: normal;
+            position: relative;
+            font-style: italic;
+        }
+
+        .marquee {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll-left 15s linear infinite;
+        }
+
+        @keyframes scroll-left {
+            0% {
+                transform: translateX(0%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>Student ID Card Management System</header>
+    <div class="container text-center my-3">
+        <div id="loginDiv" class="my-2">
+            <h2 class="my-4" style="font-weight: bold; color: #007bff">Admin Login</h2>
+            <input type="email" id="email" class="form-control mb-2" placeholder="Admin Email">
+            <input type="password" id="password" class="form-control mb-2" placeholder="Password">
+            <button class="btn btn-primary mt-4" onclick="login()">Login</button>
+            <p class="my-2">Don't have an account? Contact Admin <a href="vijaypandarwade@gmail.com" target="_blank"
+                    style="font-size: 16px; font-weight: bold; color: #007bff">Click Here</a></p>
+        </div>
+
+        <div id="adminPanel" style="display:none">
+            <h3><b>Student List</b></h3>
+
+            <div class="mb-3">
+                <input type="text" id="searchInput" class="form-control"
+                    placeholder="Search student by name, reg no, email, or course..." oninput="filterStudents()">
+            </div>
+
+
+            <div class="d-flex justify-content-between my-3 mb-2" style="gap: 10px !important;">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#studentModal"
+                    onclick="openAddModal()">Add Student</button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#helpModal"
+                    onclick="openHelpModal()">Help/Info</button>
+                <button class="btn btn-primary" onclick="logout()">Logout</button>
+            </div>
+
+            <div class="marquee-container mb-4">
+                <div class="marquee">
+                    Note : Last Date for Registration is <b>20th May 2023</b> for <b>3rd Semester</b> Students and <b>30th
+                        May 2023</b> for <b>5th Semester</b> Students. Please Register before the last date.
+                </div>
+            </div>
+
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Photo</th>
+                            <th>Name <button id="sortNameBtn" class="btn btn-sm btn-light ms-2"
+                                    style="display: contents !important; background: none !important;">🔽</button></th>
+                            <!-- <th>Info</th> -->
+                            <th>Course</th>
+                            <th>Semester</th>
+                            <th>Reg No</th>
+                            <th>DOB</th>
+                            <th>Address</th>
+                            <th>Mobile</th>
+                            <th>Email</th>
+                            <th>ID Card</th>
+                            <th>Update</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Student Modal -->
+    <div class="modal fade" id="studentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content p-3">
+                <h5 id="modalTitle" class="mb-3 text-center text-primary">Add Student</h5>
+                <input type="text" id="studentName" class="form-control mb-2" placeholder="Student Name" />
+                <!-- <input type="text" id="studentCourse" class="form-control mb-2" placeholder="Course"> -->
+                <select id="studentCourse" class="form-control mb-2">
+                    <option value="" disabled selected>Select Course</option>
+                    <option value="BCA">BCA</option>
+                    <option value="MCA">MCA</option>
+                    <option value="BTech">BTech</option>
+                    <option value="MTech">MTech</option>
+                    <option value="MBA">MBA</option>
+                    <option value="BCom">BCom</option>
+                    <option value="MCom">MCom</option>
+                </select>
+
+                <select id="studentSemester" class="form-control mb-2">
+                    <option value="" disabled selected>Select Semester</option>
+                    <option value="I">I</option>
+                    <option value="II">II</option>
+                    <option value="III">III</option>
+                    <option value="IV">IV</option>
+                    <option value="V">V</option>
+                    <option value="VI">VI</option>
+                    <option value="VII">VII</option>
+                    <option value="VIII">VIII</option>
+                </select>
+
+                <!-- <input type="text" id="studentSemester" class="form-control mb-2" placeholder="Semester"> -->
+                <input type="text" id="studentRegNo" class="form-control mb-2" placeholder="Reg No">
+                <input type="date" id="studentDOB" class="form-control mb-2" placeholder="DOB">
+                <input type="text" id="studentAddress" class="form-control mb-2" placeholder="Address">
+                <input type="text" id="studentMobile" class="form-control mb-2" placeholder="Mobile">
+                <input type="text" id="studentEmail" class="form-control mb-2" placeholder="Email">
+                <input type="file" id="studentPhoto" class="form-control mb-3" accept="image/*" />
+                <p class="text-danger form-text">Note : Please upload photo of size less than 1MB</p>
+                <button class="btn btn-primary w-100" onclick="saveStudent()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader"
+        style="display:none !important; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.6); z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <div
+            style="border: 6px solid #f3f3f3; border-top: 6px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;">
+        </div>
+    </div>
+
+    <div id="toast" class="toast">
+        <h4 id="toastHeader"></h4>
+        <h6 id="toastMessage"></h6>
+    </div>
+
+    <div class="modal fade" id="idCardModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3">
+                <div id="idCardContent"></div>
+                <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary" onclick="printIDCard()">Download ID Card</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="photoEditModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content p-3 text-center align-items-center">
+                <img id="previewPhoto" src=""
+                    style="width: 200px; height: 200px; border-radius: 50%; border: 3px solid #0099cc; object-fit: cover;" />
+                <input type="file" id="newPhotoInput" onchange="previewNewPhoto(event)" accept="image/*"
+                    class="form-control mt-3 mb-2" />
+                <button class="btn btn-primary" onclick="saveNewPhoto()">Update Photo</button>
+                <p class="text-danger form-text">Note : Please upload photo of size less than 1MB</p>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBA1pXFMudNDCpEI7UHtnSpzhmjJd4XNyY",
+            authDomain: "student-id-app-4c8d9.firebaseapp.com",
+            projectId: "student-id-app-4c8d9",
+            storageBucket: "student-id-app-4c8d9.appspot.com",
+            messagingSenderId: "59330959442",
+            appId: "1:59330959442:web:505a4774f6ee02014ae78b"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let editId = null;
+        let allStudents = [];
+        let currentEditPhotoId = null;
+        let sortAscending = true;
+
+        function previewNewPhoto(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('previewPhoto').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openPhotoModal(id, photoUrl) {
+            currentEditPhotoId = id;
+            document.getElementById('previewPhoto').src = photoUrl;
+            document.getElementById('newPhotoInput').value = '';
+            new bootstrap.Modal(document.getElementById('photoEditModal')).show();
+        }
+
+        function saveNewPhoto() {
+            const file = document.getElementById('newPhotoInput').files[0];
+            if (!file || !currentEditPhotoId) {
+                showToast('Please select a photo', 'warning');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                const base64 = e.target.result;
+                showLoader();
+                try {
+                    await db.collection('students').doc(currentEditPhotoId).update({ photo: base64 });
+                    showToast('Photo updated successfully');
+                    bootstrap.Modal.getInstance(document.getElementById('photoEditModal')).hide();
+                    setTimeout(() => {
+                        loadStudents();
+                    }, 200);
+                } catch (err) {
+                    showToast('Failed to update photo', 'danger');
+                } finally {
+                    hideLoader();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function printIDCard() {
+            const originalCard = document.querySelector('#idCardModal .sid-card');
+            const clonedCard = originalCard.cloneNode(true);
+
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'fixed';
+            wrapper.style.top = '0';
+            wrapper.style.left = '0';
+            wrapper.style.width = '100vw';
+            wrapper.style.height = '100vh';
+            wrapper.style.background = '#fff';
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.justifyContent = 'center';
+            wrapper.style.zIndex = '99999';
+            wrapper.style.padding = '40px';
+            wrapper.appendChild(clonedCard);
+            document.body.appendChild(wrapper);
+
+            // Ensure fonts/images load fully
+            setTimeout(() => {
+                const opt = {
+                    margin: 0,
+                    filename: 'id-card.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        windowWidth: wrapper.scrollWidth,
+                        windowHeight: wrapper.scrollHeight,
+                        backgroundColor: '#fff'
+                    },
+                    jsPDF: {
+                        unit: 'px',
+                        format: [clonedCard.offsetWidth + 10, clonedCard.offsetHeight + 25],
+                        orientation: 'portrait'
+                    }
+                };
+
+                html2pdf().set(opt).from(clonedCard).save().then(() => {
+                    document.body.removeChild(wrapper);
+                });
+            }, 300);
+            showToast('ID Card downloaded successfully');
+        }
+
+        function showID(student) {
+            const container = document.getElementById('idCardContent');
+            container.innerHTML = `
+            <div class="sid-card-wrapper">
+            <div class="sid-card">
+                <div class="sid-topbar">
+                <div class="sid-college-name">Doddappa Appa College of BCA <br> Basavakalyan</div>
+                </div>
+                <div class="sid-photo">
+                <img src="${student.photo || 'https://via.placeholder.com/100'}" alt="Student Photo">
+                </div>
+                <div class="sid-info">
+                <div class="sid-student-name">${student.name || ''}</div>
+                <div>${student.course || ''} - ${student.semester || ''}</div>
+                <div>${student.regNo || ''}</div>
+                <div>DOB: ${student.dob || ''}</div>
+                <div>Address: ${student.address || ''}</div>
+                <div>Phone: ${student.mobile || ''}</div>
+                <div>Email: ${student.email || ''}</div>
+                </div>
+                <div class="sid-footer">www.pdacek.ac.in</div>
+            </div>
+            </div>
+        `;
+
+            const modal = new bootstrap.Modal(document.getElementById('idCardModal'));
+            modal.show();
+        }
+
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById("toast");
+            // toast.textContent = message;
+            const toastHeader = document.getElementById("toastHeader");
+            const toastMessage = document.getElementById("toastMessage");
+
+
+            toastMessage.textContent = message;
+
+            toast.className = `toast show`;
+
+            if (type === 'error') {
+                toast.classList.add('error');
+                toastHeader.textContent = 'Error';
+            } else if (type === 'warning') {
+                toast.classList.add('warning');
+                toastHeader.textContent = 'Warning';
+            } else if (type === 'success') {
+                toast.classList.add('success');
+                toastHeader.textContent = 'Success';
+            }
+
+            setTimeout(() => {
+                toast.className = "toast";
+            }, 3000);
+        }
+
+
+
+        auth.onAuthStateChanged(user => {
+            document.getElementById('loginDiv').style.display = user ? 'none' : 'block';
+            document.getElementById('adminPanel').style.display = user ? 'block' : 'none';
+            if (user)
+                loadStudents();
+        });
+
+        function login() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!email || !password) {
+                showToast('Please enter email and password', 'warning');
+                return;
+            }
+
+            showLoader();
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    document.getElementById('loginDiv').style.display = 'none';
+                    document.getElementById('adminPanel').style.display = 'block';
+                })
+                .catch(err => {
+                    showToast(err.message, 'error');
+                    hideLoader();
+                });
+        }
+
+        function logout() {
+            auth.signOut();
+        }
+
+        function openAddModal() {
+            editId = null;
+            document.getElementById('modalTitle').textContent = "Add Student";
+            document.getElementById('studentName').value = '';
+            // document.getElementById('studentInfo').value = '';
+            document.getElementById('studentPhoto').value = '';
+            document.getElementById('studentCourse').value = '';
+            document.getElementById('studentSemester').value = '';
+            document.getElementById('studentRegNo').value = '';
+            document.getElementById('studentDOB').value = '';
+            document.getElementById('studentAddress').value = '';
+            document.getElementById('studentMobile').value = '';
+            document.getElementById('studentEmail').value = '';
+        }
+
+        function saveStudent() {
+            const name = document.getElementById('studentName').value;
+            // const info = document.getElementById('studentInfo').value;
+            const file = document.getElementById('studentPhoto').files[0];
+
+            const course = document.getElementById('studentCourse').value;
+            const semester = document.getElementById('studentSemester').value;
+            const regNo = document.getElementById('studentRegNo').value;
+            const dob = document.getElementById('studentDOB').value;
+            const address = document.getElementById('studentAddress').value;
+            const mobile = document.getElementById('studentMobile').value;
+            const email = document.getElementById('studentEmail').value;
+
+            if (!name || !course || !regNo) {
+                showToast("Name, Course, and Reg No are required", 'warning');
+                return;
+            }
+
+            showLoader();
+            const saveToFirestore = (base64Image = '') => {
+                const studentData = {
+                    name,
+                    photo: base64Image,
+                    course,
+                    semester,
+                    regNo,
+                    dob,
+                    address,
+                    mobile,
+                    email
+                };
+
+                db.collection('students').add(studentData).then(() => {
+                    showToast("Student added successfully");
+                    hideLoader();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('studentModal'));
+                    modal.hide();
+                    loadStudents();
+
+                    document.getElementById('studentName').value = '';
+                    // document.getElementById('studentInfo').value = '';
+                    document.getElementById('studentPhoto').value = '';
+                    document.getElementById('studentCourse').value = '';
+                    document.getElementById('studentSemester').value = '';
+                    document.getElementById('studentRegNo').value = '';
+                    document.getElementById('studentDOB').value = '';
+                    document.getElementById('studentAddress').value = '';
+                    document.getElementById('studentMobile').value = '';
+                    document.getElementById('studentEmail').value = '';
+                }).catch(error => {
+                    showToast("Failed to add student: " + error.message, 'danger');
+                });
+            };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    saveToFirestore(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                saveToFirestore();
+            }
+        }
+
+        function loadStudents() {
+            showLoader();
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+            allStudents = [];
+
+            try {
+                db.collection('students').get().then(snapshot => {
+                    snapshot.forEach(doc => {
+                        const s = doc.data();
+                        s.id = doc.id;
+                        allStudents.push(s);
+                    });
+                    renderStudents(allStudents);
+                    hideLoader();
+                    showToast("Students loaded successfully");
+                });
+            } catch (error) {
+                showToast("Failed to load students: " + error.message, 'danger');
+                hideLoader();
+            }
+        }
+
+        function renderStudents(students) {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            if (students.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="12" class="text-center text-muted py-3">No students found.</td>
+                `;
+                tbody.appendChild(tr);
+                return;
+            }
+
+            students.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.setAttribute("data-id", s.id);
+
+                tr.innerHTML = `
+                    <td>
+                        <div style="position: relative; width: 60px; height: 60px;">
+                            <img src="${s.photo}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />
+                            <span 
+                            onclick="openPhotoModal('${s.id}', '${s.photo}')"
+                            style="position: absolute; bottom: 0; right: 0; background: #fff; border-radius: 50%; padding: 2px; cursor: pointer;">
+                            ✏️
+                            </span>
+                        </div>
+                    </td>
+                    <td id="name-${s.id}" contenteditable="false" data-original="${s.name || ''}">${s.name || '-'}</td>
+                    <td id="course-${s.id}" contenteditable="true" data-original="${s.course || ''}">${s.course || '-'}</td>
+                    <td id="semester-${s.id}" contenteditable="true" data-original="${s.semester || ''}">${s.semester || '-'}</td>
+                    <td id="regNo-${s.id}" contenteditable="false" data-original="${s.regNo || ''}">${s.regNo || ''}</td>
+                    <td id="dob-${s.id}" contenteditable="true" data-original="${s.dob || ''}">${s.dob || '-'}</td>
+                    <td id="address-${s.id}" contenteditable="true" data-original="${s.address || ''}">${s.address || '-'}</td>
+                    <td id="mobile-${s.id}" contenteditable="true" data-original="${s.mobile || ''}">${s.mobile || '-'}</td>
+                    <td id="email-${s.id}" contenteditable="true" data-original="${s.email || ''}">${s.email || '-'}</td>
+                    <td><button class="btn btn-sm btn-primary" onclick='showID(${JSON.stringify(s)})'>View</button></td>
+                    <td><button class="btn btn-sm btn-success" onclick="updateStudent('${s.id}')">Update</button></td>
+                    <td><button class="btn btn-sm btn-danger" onclick="deleteStudent('${s.id}')">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterStudents() {
+            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+            const filtered = allStudents.filter(s =>
+                (s.name || '').toLowerCase().includes(keyword) ||
+                (s.regNo || '').toLowerCase().includes(keyword) ||
+                (s.email || '').toLowerCase().includes(keyword) ||
+                (s.course || '').toLowerCase().includes(keyword)
+            );
+            renderStudents(filtered);
+        }
+
+        document.getElementById('sortNameBtn').addEventListener('click', () => {
+            sortAscending = !sortAscending;
+
+            allStudents.sort((a, b) => {
+                const nameA = (a.name || '').toLowerCase();
+                const nameB = (b.name || '').toLowerCase();
+
+                if (nameA < nameB) return sortAscending ? -1 : 1;
+                if (nameA > nameB) return sortAscending ? 1 : -1;
+                return 0;
+            });
+
+            document.getElementById('sortNameBtn').innerText = sortAscending ? '🔽' : '🔼';
+            renderStudents(allStudents);
+        });
+
+
+
+        updateStudent = async (id) => {
+            const tr = document.querySelector(`#studentTableBody > tr[data-id="${id}"]`);
+
+            const name = document.getElementById(`name-${id}`).textContent.trim();
+            // const info = document.getElementById(`info-${id}`).textContent.trim();
+            const course = document.getElementById(`course-${id}`).textContent.trim();
+            const semester = document.getElementById(`semester-${id}`).textContent.trim();
+            const regNo = document.getElementById(`regNo-${id}`).textContent.trim();
+            const dob = document.getElementById(`dob-${id}`).textContent.trim();
+            const address = document.getElementById(`address-${id}`).textContent.trim();
+            const mobile = document.getElementById(`mobile-${id}`).textContent.trim();
+            const email = document.getElementById(`email-${id}`).textContent.trim();
+
+
+            const doc = await db.collection('students').doc(id).get();
+            if (!doc.exists) {
+                showToast("Failed to update: Student not found", "warning");
+                return;
+            }
+
+            const oldData = doc.data();
+            const updateData = {};
+
+            if (name !== oldData.name) updateData.name = name;
+            if (course !== oldData.course) updateData.course = course;
+            if (semester !== oldData.semester) updateData.semester = semester;
+            if (regNo !== oldData.regNo) updateData.regNo = regNo;
+            if (dob !== oldData.dob) updateData.dob = dob;
+            if (address !== oldData.address) updateData.address = address;
+            if (mobile !== oldData.mobile) updateData.mobile = mobile;
+            if (email !== oldData.email) updateData.email = email;
+
+            if (Object.keys(updateData).length > 0) {
+                showLoader();
+                try {
+                    await db.collection('students').doc(id).update(updateData);
+                    showToast("Student updated successfully");
+                    hideLoader();
+                    loadStudents();
+                } catch (error) {
+                    showToast("Failed to update student", true);
+                    hideLoader();
+                }
+            } else {
+                showToast("No changes detected", 'warning');
+            }
+        }
+
+
+
+        // function showID(s) {
+        //     document.getElementById('cardPhoto').src = s.photo;
+        //     document.getElementById('cardName').textContent = s.name;
+        //     // document.getElementById('cardInfo').textContent = s.info;
+        //     new bootstrap.Modal(document.getElementById('idCardModal')).show();
+        // }
+
+        function deleteStudent(id) {
+            if (confirm("Are you sure you want to delete this student?")) {
+                showLoader();
+                try {
+                    db.collection('students').doc(id).delete().then(() => {
+                        showToast("Student deleted successfully");
+                        hideLoader();
+                        loadStudents();
+                    });
+                } catch (error) {
+                    showToast("Failed to delete student", 'danger');
+                    hideLoader();
+                }
+            }
+        }
+
+        // Loader
+        function showLoader() {
+            document.getElementById('loader').style.display = 'flex';
+        }
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function openHelpModal() {
+            window.open("info.html");
+        }
+    </script>
+</body>
+
+</html>>
+
+</html>
