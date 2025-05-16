@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Verify ID Card</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(90deg, #efd5ff 0%, #515ada 100%);
+        }
+
+        .sid-card {
+            width: 350px;
+            border: 2px solid #007bff;
+            border-radius: 12px;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .sid-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            border: 2px solid #007bff;
+        }
+
+        .sid-card h3 {
+            margin: 5px 0;
+            color: #007bff;
+        }
+
+        .sid-card p {
+            margin: 2px 0;
+            font-size: 14px;
+        }
+
+        .not-found {
+            font-size: 20px;
+            color: red;
+        }
+    </style>
+
+    <!-- Firebase App & Firestore (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+
+    <div id="cardContainer">Loading...</div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBA1pXFMudNDCpEI7UHtnSpzhmjJd4XNyY",
+            authDomain: "student-id-app-4c8d9.firebaseapp.com",
+            projectId: "student-id-app-4c8d9",
+            storageBucket: "student-id-app-4c8d9.appspot.com",
+            messagingSenderId: "59330959442",
+            appId: "1:59330959442:web:505a4774f6ee02014ae78b"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const getQueryParam = (key) => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(key);
+        };
+
+        const regNo = getQueryParam("regNo");
+        const cardContainer = document.getElementById("cardContainer");
+
+        if (regNo) {
+            db.collection("students").where("regNo", "==", regNo).get().then(snapshot => {
+                if (!snapshot.empty) {
+                    const doc = snapshot.docs[0];
+                    const s = doc.data();
+                    cardContainer.innerHTML = `
+                                <div class="sid-card">
+                                    <img src="${s.photo}" alt="Student Photo">
+                                    <h3>${s.name}</h3>
+                                    <p><strong>Course:</strong> ${s.course}</p>
+                                    <p><strong>Semester:</strong> ${s.semester}</p>
+                                    <p><strong>Reg No:</strong> ${s.regNo}</p>
+                                    <p><strong>DOB:</strong> ${s.dob}</p>
+                                    <p><strong>Address:</strong> ${s.address}</p>
+                                    <p><strong>Mobile:</strong> ${s.mobile}</p>
+                                    <p><strong>Email:</strong> ${s.email}</p>
+                                </div>
+                                `;
+                } else {
+                    cardContainer.innerHTML = `<p class="not-found">Student not found with Reg No <b>${regNo}</b></p>`;
+                }
+            }).catch(err => {
+                cardContainer.innerHTML = `<p class="not-found">Error: ${err.message}</p>`;
+            });
+        } else {
+            cardContainer.innerHTML = `<p class="not-found">No Reg No provided!</p>`;
+        }
+    </script>
+</body>
+
+</html>
