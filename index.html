@@ -284,6 +284,48 @@
                 transform: translateX(-100%);
             }
         }
+
+        .btn-primary {
+            background-color: #000 !important;
+            color: #fff !important;
+            border-color: #000 !important;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active {
+            background-color: #000 !important;
+            border-color: #000 !important;
+            color: #fff !important;
+        }
+
+        .text-primary {
+            color: #000 !important;
+        }
+
+        .text-primary:hover,
+        .text-primary:focus,
+        .text-primary:active {
+            color: #000 !important;
+        }
+
+        header {
+            background-color: #000 !important;
+        }
+
+        h2,
+        h3 {
+            color: #000 !important;
+        }
+
+        .table-primary {
+            --bs-table-color: #000 !important;
+            --bs-table-bg: #ffffff;
+        }
+
+        .bg-primary {
+            background-color: rgb(41 46 53) !important;
+        }
     </style>
 </head>
 
@@ -316,7 +358,7 @@
                 <button class="btn btn-primary" onclick="logout()">Logout</button>
             </div>
 
-            <button class="btn btn-info mb-3 text-white" onclick="showAnalyticsDashboard()" data-bs-toggle="modal"
+            <button class="btn btn-primary mb-3 text-white" onclick="showAnalyticsDashboard()" data-bs-toggle="modal"
                 data-bs-target="#analyticsModal">
                 View Analytics
             </button>
@@ -417,7 +459,7 @@
             <div class="modal-content p-3">
                 <div id="idCardContent"></div>
                 <button class="btn btn-primary">
-                    <a id="verifyLink" class="text-white" href="" target="_blank">
+                    <a id="verifyLink" class="text-white" href="" target="_blank" style="font-size: 16px !important;">
                         Share ID Card
                     </a>
                 </button>
@@ -508,7 +550,7 @@
                     <form id="resultForm" class="needs-validation mb-4" novalidate>
                         <div id="subjectRows" class="mb-3"></div>
                         <div class="d-flex justify-content-between" style="gap: 10px !important;">
-                            <button type="button" class="btn btn-outline-primary" onclick="addSubjectRow()">+ Add
+                            <button type="button" class="btn btn-primary" onclick="addSubjectRow()">+ Add
                                 Subject</button>
                             <button type="submit" class="btn btn-primary">Publish Result</button>
                         </div>
@@ -880,7 +922,7 @@
                     <td id="email-${s.id}" contenteditable="true" data-original="${s.email || ''}">${s.email || '-'}</td>
                     <td><button class="btn btn-sm btn-primary" onclick='openStudentResultModal(${JSON.stringify(s)})'>Details</button></td>
                     <td><button class="btn btn-sm btn-primary" onclick='showID(${JSON.stringify(s)})'>View</button></td>
-                    <td><button class="btn btn-sm btn-success" onclick="updateStudent('${s.id}')">Update</button></td>
+                    <td><button class="btn btn-sm btn-primary" onclick="updateStudent('${s.id}')">Update</button></td>
                     <td><button class="btn btn-sm btn-danger" onclick="deleteStudent('${s.id}')">Delete</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -1135,7 +1177,7 @@
                     header.className = 'd-flex justify-content-between align-items-center mb-2';
 
                     const title = document.createElement('button');
-                    title.className = 'btn btn-sm btn-outline-primary disabled';
+                    title.className = 'btn btn-sm btn-primary disabled';
                     title.style.width = '30%';
                     title.textContent = `${data.course} - Semester ${data.semester}`;
 
@@ -1151,7 +1193,7 @@
                     printBtn.className = 'btn btn-sm btn-primary';
                     printBtn.textContent = 'Print Result';
                     printBtn.onclick = () => printResultTable(resultDiv.querySelector('table'));
-                    
+
 
 
                     header.appendChild(title);
