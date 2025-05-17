@@ -295,8 +295,8 @@
             <input type="email" id="email" class="form-control mb-2" placeholder="Admin Email">
             <input type="password" id="password" class="form-control mb-2" placeholder="Password">
             <button class="btn btn-primary mt-4" onclick="login()">Login</button>
-            <p class="my-2">Don't have an account? Contact Admin <a href="mailto:vijaypandarwade@gmail.com" target="_blank"
-                    style="font-size: 16px; font-weight: bold; color: #007bff">Click Here</a></p>
+            <p class="my-2">Don't have an account? Contact Admin <a href="mailto:vijaypandarwade@gmail.com"
+                    target="_blank" style="font-size: 16px; font-weight: bold; color: #007bff">Click Here</a></p>
         </div>
 
         <div id="adminPanel" style="display:none">
@@ -345,6 +345,7 @@
                             <th>Address</th>
                             <th>Mobile</th>
                             <th>Email</th>
+                            <th>Show Result</th>
                             <th>ID Card</th>
                             <th>Update</th>
                             <th>Delete</th>
@@ -483,7 +484,51 @@
         </div>
     </div>
 
+    <div class="modal fade" id="studentResultModal" tabindex="-1" aria-labelledby="studentResultModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-primary" id="studentResultModalLabel">Student Details & Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Student Info -->
+                    <div id="studentInfo" class="mb-4 p-3 bg-light rounded border">
+                        <h5 class="mb-2 text-primary">Student Details</h5>
+                        <p class="mb-1"><strong>Reg No:</strong> <span id="studentIdDetails"></span></p>
+                        <p class="mb-1"><strong>Name:</strong> <span id="studentNameDetails"></span></p>
+                        <p class="mb-0"><strong>Course:</strong> <span id="studentCourseDetails"></span> |
+                            <strong>Semester:</strong> <span id="studentSemesterDetails"></span>
+                        </p>
+                    </div>
 
+                    <!-- Add Result Form -->
+                    <h5 class="mb-3 text-primary">Add New Result</h5>
+                    <form id="resultForm" class="needs-validation mb-4" novalidate>
+                        <div id="subjectRows" class="mb-3"></div>
+                        <div class="d-flex justify-content-between" style="gap: 10px !important;">
+                            <button type="button" class="btn btn-outline-primary" onclick="addSubjectRow()">+ Add
+                                Subject</button>
+                            <button type="submit" class="btn btn-primary">Publish Result</button>
+                        </div>
+                    </form>
+
+                    <!-- Previous Results -->
+                    <h5 class="mb-3 text-primary">Previous Results</h5>
+                    <div id="previousResults" class="mb-4">
+                        <!-- When you create a table dynamically, wrap it like this: -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped mb-3">
+                                <!-- your table content here -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -833,6 +878,7 @@
                     <td id="address-${s.id}" contenteditable="true" data-original="${s.address || ''}">${s.address || '-'}</td>
                     <td id="mobile-${s.id}" contenteditable="true" data-original="${s.mobile || ''}">${s.mobile || '-'}</td>
                     <td id="email-${s.id}" contenteditable="true" data-original="${s.email || ''}">${s.email || '-'}</td>
+                    <td><button class="btn btn-sm btn-primary" onclick='openStudentResultModal(${JSON.stringify(s)})'>Details</button></td>
                     <td><button class="btn btn-sm btn-primary" onclick='showID(${JSON.stringify(s)})'>View</button></td>
                     <td><button class="btn btn-sm btn-success" onclick="updateStudent('${s.id}')">Update</button></td>
                     <td><button class="btn btn-sm btn-danger" onclick="deleteStudent('${s.id}')">Delete</button></td>
@@ -1034,6 +1080,400 @@
         }
 
     </script>
+
+    <script>
+        let currentStudent = null;
+        // let db = firebase.firestore();
+
+        // Open modal & initialize
+        function openStudentResultModal(student) {
+
+            console.log("Selected student:", student);
+            currentStudent = student;
+
+            document.getElementById('studentIdDetails').textContent = student.regNo || '-';
+            document.getElementById('studentNameDetails').textContent = student.name || '-';
+            document.getElementById('studentCourseDetails').textContent = student.course || '-';
+            document.getElementById('studentSemesterDetails').textContent = student.semester || '-';
+
+            // loadPreviousResults(student.id);
+            // clearSubjectRows();
+
+            const modal = new bootstrap.Modal(document.getElementById('studentResultModal'));
+            modal.show();
+
+            loadPreviousResults(student.id);
+        }
+
+        // Load previous results
+        async function loadPreviousResults(studentId) {
+            const container = document.getElementById('previousResults');
+            container.innerHTML = 'Loading...';
+
+            showLoader();
+            try {
+                const snapshot = await db.collection('results')
+                    .where('studentId', '==', studentId)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p>No previous results found.</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Skip if no subjects
+                    if (!data.subjects || data.subjects.length === 0) return;
+
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'mb-4';
+
+                    const header = document.createElement('div');
+                    header.className = 'd-flex justify-content-between align-items-center mb-2';
+
+                    const title = document.createElement('button');
+                    title.className = 'btn btn-sm btn-outline-primary disabled';
+                    title.style.width = '30%';
+                    title.textContent = `${data.course} - Semester ${data.semester}`;
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.style.width = '30%';
+                    deleteBtn.className = 'btn btn-danger btn-sm';
+                    deleteBtn.textContent = 'Delete Result';
+                    deleteBtn.onclick = () => deleteResult(doc.id, studentId);
+
+                    // <button class="btn btn-sm btn-outline-primary" onclick="printResultTable(this.closest('.result-wrapper').querySelector('table'))">Print</button>
+                    const printBtn = document.createElement('button');
+                    printBtn.style.width = '30%';
+                    printBtn.className = 'btn btn-sm btn-primary';
+                    printBtn.textContent = 'Print Result';
+                    printBtn.onclick = () => printResultTable(resultDiv.querySelector('table'));
+                    
+
+
+                    header.appendChild(title);
+                    header.appendChild(printBtn);
+                    header.appendChild(deleteBtn);
+
+                    resultDiv.appendChild(header);
+                    resultDiv.appendChild(createResultsTable(data.subjects));
+                    resultDiv.appendChild(document.createElement('hr'));
+
+                    container.appendChild(resultDiv);
+                });
+            } catch (error) {
+                container.innerHTML = `<p class="text-danger">Error loading results: ${error.message}</p>`;
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function deleteResult(resultId, studentId) {
+            if (!confirm('Are you sure you want to delete this result?')) return;
+
+            showLoader();
+            try {
+                await db.collection('results').doc(resultId).delete();
+                showToast("Result deleted successfully");
+                loadPreviousResults(studentId);
+            } catch (error) {
+                showToast("Error deleting result: " + error.message, "warning");
+            } finally {
+                hideLoader();
+            }
+        }
+
+
+
+        // Create results table with totals and grade
+        function createResultsTable(subjects) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+
+            const table = document.createElement('table');
+            table.className = 'table table-sm table-bordered';
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Sub Code</th>
+                    <th>Subject</th>
+                    <th>Total Theory Marks</th>
+                    <th>Total Practical Marks</th>
+                    <th>Obtained Theory Marks</th>
+                    <th>Obtained Practical Marks</th>
+                    <th>Total Obtained Marks</th>
+                    <th>Grade</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+
+            let totalTheoryMarks = 0;
+            let totalPracticalMarks = 0;
+            let totalObtainedTheory = 0;
+            let totalObtainedPractical = 0;
+
+            subjects.forEach(sub => {
+                const totalObtained = (sub.obtainedTheory || 0) + (sub.obtainedPractical || 0);
+
+                totalTheoryMarks += (sub.totalTheoryMarks || 0);
+                totalPracticalMarks += (sub.totalPracticalMarks || 0);
+                totalObtainedTheory += (sub.obtainedTheory || 0);
+                totalObtainedPractical += (sub.obtainedPractical || 0);
+
+                const grade = getGrade(totalObtained, (sub.totalTheoryMarks || 0) + (sub.totalPracticalMarks || 0));
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${sub.subjectCode || '-'}</td>
+                    <td>${sub.subject || '-'}</td>
+                    <td>${sub.totalTheoryMarks || '-'}</td>
+                    <td>${sub.totalPracticalMarks || '-'}</td>
+                    <td>${sub.obtainedTheory || '-'}</td>
+                    <td>${sub.obtainedPractical || '-'}</td>
+                    <td>${totalObtained}</td>
+                    <td>${grade}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Total row
+            const totalObtainedMarks = totalObtainedTheory + totalObtainedPractical;
+            const totalMarks = totalTheoryMarks + totalPracticalMarks;
+            const percentage = ((totalObtainedMarks / (totalMarks || 1)) * 100).toFixed(2);
+
+            const totalRow = document.createElement('tr');
+            totalRow.innerHTML = `
+                    <th colspan="2">Total</th>
+                    <th>${totalTheoryMarks}</th>
+                    <th>${totalPracticalMarks}</th>
+                    <th>${totalObtainedTheory}</th>
+                    <th>${totalObtainedPractical}</th>
+                    <th>${totalObtainedMarks}</th>
+                    <th>${percentage}%</th>
+                `;
+            tbody.appendChild(totalRow);
+
+            table.appendChild(tbody);
+            wrapper.appendChild(table);
+
+            return wrapper;
+        }
+
+
+        // Grade calculation function
+        function getGrade(obtained, total) {
+            if (total === 0) return '-';
+            const percentage = (obtained / total) * 100;
+
+            if (percentage >= 90) return 'A+';
+            if (percentage >= 80) return 'A';
+            if (percentage >= 70) return 'B';
+            if (percentage >= 60) return 'C';
+            if (percentage >= 40) return 'Pass';
+            return 'Fail';
+        }
+
+        // Clear all subject input rows & add one
+        function clearSubjectRows() {
+            const container = document.getElementById('subjectRows');
+            container.innerHTML = '';
+            // addSubjectRow();
+        }
+
+        // Add a subject input row
+        function addSubjectRow() {
+            const container = document.getElementById('subjectRows');
+            const row = document.createElement('div');
+            row.className = 'subject-row border rounded p-3 mb-3 bg-light';
+
+            row.innerHTML = `
+                <div class="mb-2">
+                    <input type="text" class="form-control" placeholder="Subject Code" required>
+                </div>
+                <div class="mb-2">
+                    <input type="text" class="form-control" placeholder="Subject Name" required>
+                </div>
+                <div class="mb-2">
+                    <input type="number" class="form-control" placeholder="Total Theory Marks" min="0" required>
+                </div>
+                <div class="mb-2">
+                    <input type="number" class="form-control" placeholder="Total Practical Marks" min="0" required>
+                </div>
+                <div class="mb-2">
+                    <input type="number" class="form-control" placeholder="Obtained Theory Marks" min="0" required>
+                </div>
+                <div class="mb-2">
+                    <input type="number" class="form-control" placeholder="Obtained Practical Marks" min="0" required>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-danger btn-sm w-100" onclick="this.closest('.subject-row').remove()">Remove</button>
+                </div>
+            `;
+
+            container.appendChild(row);
+        }
+
+
+        // Form submit - save result to Firestore & console.table()
+        document.getElementById('resultForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!currentStudent) return alert('No student selected');
+
+            // const subjectRows = document.getElementById('subjectRows').querySelectorAll('.row');
+            const subjectRows = document.querySelectorAll('.subject-row');
+            let subjects = [];
+
+            for (let row of subjectRows) {
+                const inputs = row.querySelectorAll('input');
+
+                const subjectCode = inputs[0].value.trim();
+                const subject = inputs[1].value.trim();
+                const totalTheoryMarks = Number(inputs[2].value);
+                const totalPracticalMarks = Number(inputs[3].value);
+                const obtainedTheory = Number(inputs[4].value);
+                const obtainedPractical = Number(inputs[5].value);
+
+                if (!subjectCode || !subject || totalTheoryMarks < 0 || totalPracticalMarks <
+                    0 ||
+                    obtainedTheory < 0 || obtainedPractical < 0) {
+                    return alert('Please fill all subject fields with valid values');
+                }
+
+                subjects.push({
+                    subjectCode,
+                    subject,
+                    totalTheoryMarks,
+                    totalPracticalMarks,
+                    obtainedTheory,
+                    obtainedPractical
+                });
+
+                console.log("Subjects:", subjects);
+            }
+
+            if (subjects.length === 0) return showToast('Please add at least one subject', 'warning');
+
+            const dataToSave = {
+                studentId: currentStudent.id,
+                studentName: currentStudent.name,
+                regNo: currentStudent.regNo,
+                course: currentStudent.course,
+                semester: currentStudent.semester,
+                subjects,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            showLoader();
+            try {
+                await db.collection('results').add(dataToSave);
+                showToast('Result published successfully', 'success');
+
+                // Show updated results
+                loadPreviousResults(currentStudent.id);
+
+                // Show result in console.table
+                printResultsInConsole(subjects);
+
+                clearSubjectRows();
+
+            } catch (error) {
+                alert('Error saving result: ' + error.message);
+            } finally {
+                hideSpinner();
+            }
+        });
+
+        // Console table print with totals and percentage
+        function printResultsInConsole(subjects) {
+            let tableData = [];
+            let totalTheoryMarks = 0;
+            let totalPracticalMarks = 0;
+            let totalObtainedTheory = 0;
+            let totalObtainedPractical = 0;
+
+            subjects.forEach(s => {
+                const totalObtained = s.obtainedTheory + s.obtainedPractical;
+                totalTheoryMarks += s.totalTheoryMarks;
+                totalPracticalMarks += s.totalPracticalMarks;
+                totalObtainedTheory += s.obtainedTheory;
+                totalObtainedPractical += s.obtainedPractical;
+
+                tableData.push({
+                    'Sub Code': s.subjectCode,
+                    'Subject': s.subject,
+                    'Total Theory Marks': s.totalTheoryMarks,
+                    'Total Practical Marks': s.totalPracticalMarks,
+                    'Obtained Theory Marks': s.obtainedTheory,
+                    'Obtained Practical Marks': s.obtainedPractical,
+                    'Total Obtained Marks': totalObtained,
+                    'Grade': getGrade(totalObtained, s.totalTheoryMarks + s.totalPracticalMarks)
+                });
+            });
+
+            // Add total row
+            const totalObtainedMarks = totalObtainedTheory + totalObtainedPractical;
+            const totalMarks = totalTheoryMarks + totalPracticalMarks;
+            const percentage = ((totalObtainedMarks / totalMarks) * 100).toFixed(2);
+
+            tableData.push({
+                'Sub Code': 'Total',
+                'Subject': '',
+                'Total Theory Marks': totalTheoryMarks,
+                'Total Practical Marks': totalPracticalMarks,
+                'Obtained Theory Marks': totalObtainedTheory,
+                'Obtained Practical Marks': totalObtainedPractical,
+                'Total Obtained Marks': totalObtainedMarks,
+                'Grade': `${percentage}%`
+            });
+
+            console.table(tableData);
+        }
+    </script>
+
+    <script>
+        function printResultTable(tableElement) {
+            const printWindow = window.open('', '', 'width=900,height=650');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Student Result</title>
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                        <style>
+                            body { padding: 20px; font-family: Arial; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                            th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+                            th { background-color: #f2f2f2; }
+                        </style>
+                    </head>
+                    <body>
+                        
+
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <h3>Student Result</h3>
+                            <h3>Student Name: ${currentStudent.name}</h3>
+                            <h3>Reg No: ${currentStudent.regNo}</h3>
+                            <h3>Course: ${currentStudent.course}</h3>
+                            <h3>Semester: ${currentStudent.semester}</h3>
+                        </div>
+                        
+                        ${tableElement.outerHTML}
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+    </script>
+
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
