@@ -274,3 +274,84 @@ a:hover {
         transform: translateX(-100%);
     }
 }
+
+.btn-hover-style {
+    background-color: var(--bs-primary);
+    color: white;
+    border-color: var(--bs-primary);
+}
+
+.btn-outline-success.btn-hover-style {
+    background-color: #198754;
+    border-color: #198754;
+    color: white;
+}
+
+.btn-outline-info.btn-hover-style {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: white;
+}
+
+.btn-outline-warning.btn-hover-style {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: black;
+}
+
+.btn-outline-primary.btn-hover-style {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.btn-outline-secondary.btn-hover-style {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-hover-style i {
+    margin-right: 0.5rem;
+}
+
+.idcard-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.3rem;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.idcard-btn-primary {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.idcard-btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+.idcard-btn a {
+    color: white;
+    text-decoration: none;
+}
+
+.idcard-btn a:hover {
+    text-decoration: underline;
+}
+
+.idcard-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}

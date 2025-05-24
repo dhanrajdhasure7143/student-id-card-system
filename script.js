@@ -69,4 +69,17 @@ function showAnalyticsDashboard() {
     });
 }
 
-console.log("Script loaded");
+// console.log("Script loaded");
+
+function clearSearch() {
+    const input = document.getElementById('searchInput');
+    input.value = '';
+    filterStudents();
+    toggleClearBtn();
+  }
+
+  function toggleClearBtn() {
+    const input = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    clearBtn.style.display = input.value.trim() ? 'inline-block' : 'none';
+  }

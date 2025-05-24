@@ -7,48 +7,84 @@
     <title>ID Card Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        
+
     </style>
 </head>
 
 <body>
-    <header>Student ID Card Management System</header>
-    <div class="container text-center my-3">
+    <header>
+        <b>Student ID Card Management System</b>
+    </header>
 
+    <div class="container text-center my-3">
         <!-- Admin Login Form -->
         <div id="loginDiv" class="my-2">
             <h2 class="my-4" style="font-weight: bold; color: #007bff">Admin Login</h2>
             <input type="email" id="email" class="form-control mb-2" placeholder="Admin Email">
             <input type="password" id="password" class="form-control mb-2" placeholder="Password">
             <button class="btn btn-primary mt-4" onclick="login()">Login</button>
-            <p class="my-2">Don't have an account? Contact Admin <a href="mailto:vijaypandarwade@gmail.com" target="_blank"
-                    style="font-size: 16px; font-weight: bold; color: #007bff">Click Here</a></p>
+            <p class="my-2">Don't have an account? Contact Admin <a href="mailto:vijaypandarwade@gmail.com"
+                    target="_blank" style="font-size: 16px; font-weight: bold; color: #007bff">Click Here</a></p>
         </div>
 
         <!-- Admin Panel : After Login -->
         <div id="adminPanel" style="display:none">
-            <h3><b>Student List</b></h3>
-
-            <div class="mb-3">
+            <!-- Search student by name, reg no, email, or course -->
+            <!-- <div class="mb-3">
                 <input type="text" id="searchInput" class="form-control"
                     placeholder="Search student by name, reg no, email, or course..." oninput="filterStudents()">
+            </div> -->
+
+            <div class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="search" id="searchInput" class="form-control"
+                        placeholder="Search student by name, reg no, email, or course..."
+                        oninput="filterStudents();">
+                    <!-- <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" onclick="clearSearch()"
+                        style="display: none;" title="Clear">
+                        &times;
+                    </button> -->
+                </div>
             </div>
 
+            <div class="d-flex align-items-center gap-2 my-3 flex-nowrap" style="overflow-x:auto;">
+                <button
+                    class="btn btn-outline-success btn-sm d-flex justify-content-center align-items-center btn-hover-style"
+                    data-bs-toggle="modal" data-bs-target="#studentModal" onclick="openAddModal()" title="Add Student">
+                    <i class="bi bi-person-plus-fill"></i> Add
+                </button>
 
-            <div class="d-flex justify-content-between my-3 mb-2" style="gap: 10px !important;">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#studentModal"
-                    onclick="openAddModal()">Add Student</button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#helpModal"
-                    onclick="openHelpModal()">Help/Info</button>
-                <button class="btn btn-primary" onclick="logout()">Logout</button>
+                <button
+                    class="btn btn-outline-info btn-sm d-flex justify-content-center align-items-center btn-hover-style"
+                    data-bs-toggle="modal" data-bs-target="#helpModal" onclick="openHelpModal()" title="Help / Info">
+                    <i class="bi bi-question-circle-fill"></i> Help
+                </button>
+
+                <button
+                    class="btn btn-outline-warning btn-sm d-flex justify-content-center align-items-center btn-hover-style"
+                    onclick="logout()" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+
+                <button
+                    class="btn btn-outline-primary btn-sm d-flex justify-content-center align-items-center btn-hover-style"
+                    onclick="showAnalyticsDashboard()" data-bs-toggle="modal" data-bs-target="#analyticsModal"
+                    title="View Analytics">
+                    <i class="bi bi-graph-up-arrow"></i> Analytics
+                </button>
+
+                <button
+                    class="btn btn-outline-secondary btn-sm d-flex justify-content-center align-items-center btn-hover-style"
+                    onclick="loadStudentsTable()" title="Refresh Table">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
             </div>
-
-            <button class="btn btn-info mb-3 text-white" onclick="showAnalyticsDashboard()" data-bs-toggle="modal"
-                data-bs-target="#analyticsModal">
-                View Analytics
-            </button>
 
             <!-- Marquee Text for latest news -->
             <div class="marquee-container mb-4">
@@ -150,16 +186,18 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">
                 <div id="idCardContent"></div>
-                <button class="btn btn-primary">
-                    <a id="verifyLink" class="text-white" href="" target="_blank">
-                        Share ID Card
-                    </a>
-                </button>
-                <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Close</button>
-                <div class="text-center mt-3">
-                    <button class="btn btn-primary" onclick="printIDCard()">Download ID Card</button>
+                <div class="idcard-btn-group">
+                    <button class="idcard-btn idcard-btn-primary">
+                        <i class="bi bi-share-fill"></i>
+                        <a id="verifyLink" href="" target="_blank">Share ID Card</a>
+                    </button>
+                    <button type="button" class="idcard-btn idcard-btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle-fill"></i> Close
+                    </button>
+                    <button class="idcard-btn idcard-btn-primary" onclick="printIDCard()">
+                        <i class="bi bi-download"></i> Download
+                    </button>
                 </div>
-
             </div>
         </div>
     </div>
@@ -246,6 +284,46 @@
         let currentEditPhotoId = null;
         let sortAscending = true;
         let studentRegNo = null;
+
+
+        auth.onAuthStateChanged(user => {
+            document.getElementById('loginDiv').style.display = user ? 'none' : 'block';
+            document.getElementById('adminPanel').style.display = user ? 'block' : 'none';
+            if (user)
+                loadStudents();
+        });
+
+        function loadStudentsTable() {
+            loadStudents();
+        }
+
+        function loadStudents() {
+            // e.preventDefault();
+            showLoader();
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+            allStudents = [];
+
+            try {
+                db.collection('students').get().then(snapshot => {
+                    snapshot.forEach(doc => {
+                        const s = doc.data();
+                        s.id = doc.id;
+                        allStudents.push(s);
+                    });
+                    renderStudents(allStudents);
+                    hideLoader();
+                    if (allStudents.length === 0) {
+                        showToast("Slow internet connection", 'warning');
+                    } else {
+                        showToast("Students loaded successfully");
+                    }
+                });
+            } catch (error) {
+                showToast("Failed to load students: " + error.message, 'danger');
+                hideLoader();
+            }
+        }
 
         function previewNewPhoto(event) {
             const file = event.target.files[0];
@@ -392,12 +470,6 @@
             }, 3000);
         }
 
-        auth.onAuthStateChanged(user => {
-            document.getElementById('loginDiv').style.display = user ? 'none' : 'block';
-            document.getElementById('adminPanel').style.display = user ? 'block' : 'none';
-            if (user)
-                loadStudents();
-        });
 
         function login() {
             const email = document.getElementById('email').value.trim();
@@ -497,29 +569,6 @@
                 reader.readAsDataURL(file);
             } else {
                 saveToFirestore();
-            }
-        }
-
-        function loadStudents() {
-            showLoader();
-            const tbody = document.getElementById('studentTableBody');
-            tbody.innerHTML = '';
-            allStudents = [];
-
-            try {
-                db.collection('students').get().then(snapshot => {
-                    snapshot.forEach(doc => {
-                        const s = doc.data();
-                        s.id = doc.id;
-                        allStudents.push(s);
-                    });
-                    renderStudents(allStudents);
-                    hideLoader();
-                    showToast("Students loaded successfully");
-                });
-            } catch (error) {
-                showToast("Failed to load students: " + error.message, 'danger');
-                hideLoader();
             }
         }
 
