@@ -313,11 +313,11 @@
                     });
                     renderStudents(allStudents);
                     hideLoader();
-                    if (allStudents.length === 0) {
-                        showToast("Slow internet connection", 'warning');
-                    } else {
-                        showToast("Students loaded successfully");
-                    }
+                    // if (allStudents.length === 0) {
+                    //     showToast("Slow internet connection", 'warning');
+                    // } else {
+                    //     showToast("Students loaded successfully");
+                    // }
                 });
             } catch (error) {
                 showToast("Failed to load students: " + error.message, 'danger');
